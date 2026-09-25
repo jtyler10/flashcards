@@ -39,19 +39,42 @@ function normalizeCategory(cat) {
 
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
+  const currentRev = typeof CURRENT_SEED_REVISION === 'number' ? CURRENT_SEED_REVISION : 0;
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
-      return {
+      const base = {
         version: 1,
         updatedAt: parsed.updatedAt || Date.now(),
+        seedRevision: typeof parsed.seedRevision === 'number' ? parsed.seedRevision : 0,
         categories: (parsed.categories || []).map(normalizeCategory),
       };
+      // Add any seed categories introduced after the user's last seed revision.
+      // Skips names the user already has (so custom edits and deletions of
+      // pre-existing seed categories are preserved).
+      if (typeof SEED_CATEGORIES !== 'undefined' && base.seedRevision < currentRev) {
+        const existing = new Set(base.categories.map(c => c.name));
+        let added = 0;
+        for (const seed of SEED_CATEGORIES) {
+          const seedSince = typeof seed.since === 'number' ? seed.since : 0;
+          if (seedSince > base.seedRevision && !existing.has(seed.name)) {
+            base.categories.push(normalizeCategory(seed));
+            added += 1;
+          }
+        }
+        base.seedRevision = currentRev;
+        if (added > 0) {
+          base.updatedAt = Date.now();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(base));
+        }
+      }
+      return base;
     } catch (e) { console.warn('Corrupt state, reseeding', e); }
   }
   return {
     version: 1,
     updatedAt: Date.now(),
+    seedRevision: currentRev,
     categories: (typeof SEED_CATEGORIES !== 'undefined' ? SEED_CATEGORIES : []).map(normalizeCategory),
   };
 }
