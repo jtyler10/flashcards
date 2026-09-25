@@ -558,4 +558,26 @@ function toast(msg) {
 }
 
 // ---------- boot ----------
+async function autoPullOnBoot() {
+  if (!sync.enabled || !sync.pat || !sync.gistId) return;
+  try {
+    const remote = await pullSync();
+    if (!remote) return;
+    if (remote.updatedAt > state.updatedAt) {
+      state = remote;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      // Preserve view but drop any in-flight study session tied to old data.
+      studySession = null;
+      render();
+      toast('Synced from Gist');
+    }
+  } catch (e) {
+    console.warn('Auto-pull failed', e);
+  }
+}
+
 render();
+autoPullOnBoot();
+window.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') autoPullOnBoot();
+});

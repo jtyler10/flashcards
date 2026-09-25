@@ -60,6 +60,8 @@ Same steps work on Android in Chrome (menu → "Install app" or "Add to Home Scr
 3. On other devices: paste the same token + the Gist ID shown in settings → **Pull now**.
 4. Turn on "Auto-push after every change" if you want writes to sync automatically (3-second debounce).
 
+Once "Auto-push" is on and both devices know the same Gist ID, the app also **auto-pulls on open** and when you bring it back to the foreground (adopts the remote only if it's newer than local). So the normal flow is: edit on phone → auto-pushes; open on Mac later → auto-pulls before you see anything.
+
 Merge strategy is intentionally simple (last-write-wins on the whole blob), so avoid editing on two devices simultaneously without pulling in between.
 
 > The token is stored in `localStorage`. On a shared device, don't enable sync — or use a token with `gist`-only scope so leakage can't touch your repos.
