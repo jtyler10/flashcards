@@ -254,3 +254,27 @@ input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 
   transition: opacity 0.2s ease;
 }
 .toast.show { opacity: 1; }
+
+/* Landscape immersive layout — phone in landscape gets a bigger card
+   and thinner chrome so it fills more of the screen. */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { padding: 6px 12px; }
+  .header { margin-bottom: 6px; }
+  .header h1 { font-size: 15px; }
+  .options-row { margin-bottom: 6px; }
+  .options-row .chip { padding: 4px 10px; font-size: 12px; }
+  .study-wrap { margin-bottom: 8px; }
+  .study-card {
+    min-height: calc(100vh - 160px);
+    font-size: 28px;
+    padding: 16px;
+  }
+  .study-actions button { padding: 10px; font-size: 14px; }
+  .study-stats { margin-top: 4px; font-size: 12px; }
+}
+
+/* When actually in Fullscreen API (iPad, Android, desktop), lean into it. */
+:fullscreen body,
+:-webkit-full-screen body {
+  padding: 8px 16px;
+}

@@ -337,6 +337,11 @@ function renderStudy(categoryId) {
       el('span', { style: { color: 'var(--muted)' } }, 'Target'),
       targetSelect,
     ]),
+    fullscreenAvailable() && el('button', {
+      class: 'chip',
+      title: 'Toggle fullscreen',
+      onClick: toggleFullscreen,
+    }, isFullscreen() ? '⛶ Exit' : '⛶ Fullscreen'),
   ]));
 
   if (studySession.done) {
@@ -603,6 +608,28 @@ function scheduleSync() {
     pushSync().catch(e => console.warn('Auto-sync failed', e));
   }, 3000);
 }
+
+// ---------- fullscreen (iPad / Android / desktop; not available on iPhone Safari) ----------
+function fullscreenAvailable() {
+  return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+}
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+async function toggleFullscreen() {
+  try {
+    if (isFullscreen()) {
+      if (document.exitFullscreen) await document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    } else {
+      const root = document.documentElement;
+      if (root.requestFullscreen) await root.requestFullscreen();
+      else if (root.webkitRequestFullscreen) root.webkitRequestFullscreen();
+    }
+  } catch (e) { console.warn('Fullscreen toggle failed', e); }
+}
+document.addEventListener('fullscreenchange', render);
+document.addEventListener('webkitfullscreenchange', render);
 
 // ---------- toast ----------
 let toastEl = null;
