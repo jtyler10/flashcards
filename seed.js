@@ -5,7 +5,7 @@
 // category with `since: <that revision>`. On next load, existing users will
 // have the new categories added (only) — old ones they've customized or
 // deleted are left alone.
-const CURRENT_SEED_REVISION = 1;
+const CURRENT_SEED_REVISION = 2;
 
 const SEED_CATEGORIES = [
   {
@@ -361,6 +361,51 @@ const SEED_CATEGORIES = [
       ['Chemo-radiation', 'Concurrent chemotherapy with radiation. Chemo acts as a radiosensitizer. Standard in locally advanced NSCLC, head & neck, cervical, esophageal, anal cancer.'],
       ['Hormone therapy (breast, prostate)', 'Aromatase inhibitors (anastrozole, letrozole) and SERMs/SERDs (tamoxifen, fulvestrant) for HR+ breast. Androgen deprivation (GnRH agonists/antagonists) + androgen receptor blockers (enzalutamide, apalutamide) for prostate.'],
       ['Precision oncology / basket vs umbrella trials', 'Basket trial: one drug across many tumor types with the same target biomarker. Umbrella trial: one tumor type divided into biomarker-defined arms, each with a matched drug.'],
+    ],
+  },
+  {
+    name: 'Cancer Biology — Landmark trials (2020s)',
+    since: 2,
+    cards: [
+      ['KEYNOTE-522 (early TNBC)', 'Neoadjuvant pembrolizumab + chemo → surgery → adjuvant pembrolizumab vs chemo alone in stage II-III triple-negative breast cancer. Sponsor: Merck. Improved pCR (~65% vs ~51%) and event-free survival. Approved 2021 as standard of care for early TNBC.'],
+      ['KEYNOTE-024 (1L NSCLC PD-L1-high)', 'Pembrolizumab monotherapy vs platinum-doublet chemo in untreated advanced NSCLC with PD-L1 TPS ≥50%, no EGFR/ALK alteration. Merck. 5-yr OS ~32% vs ~16%. Landmark 2016 approval — first single-agent ICI 1L in NSCLC.'],
+      ['KEYNOTE-189 (1L nonsquamous NSCLC)', 'Pembrolizumab + carboplatin/pemetrexed vs chemo alone in 1L nonsquamous NSCLC, all PD-L1 levels, no EGFR/ALK. Merck. OS benefit across PD-L1 subgroups. Chemo-IO combo became default when PD-L1 is <50% or high tumor burden.'],
+      ['CheckMate 067 (advanced melanoma)', 'Nivolumab + ipilimumab vs nivolumab vs ipilimumab in previously untreated advanced melanoma. BMS. 10-year OS ~43% combo vs ~37% nivo vs ~19% ipi. Foundational combination-checkpoint dataset.'],
+      ['RELATIVITY-047 (advanced melanoma)', 'Nivolumab + relatlimab (anti-LAG-3) fixed-dose combo vs nivolumab alone in 1L advanced melanoma. BMS. PFS ~10 vs ~4.6 mo. Approved as Opdualag (2022) — first LAG-3 checkpoint inhibitor.'],
+      ['ADAURA (early EGFR NSCLC)', 'Adjuvant osimertinib × 3 years vs placebo after complete resection of stage IB-IIIA EGFR-mutant NSCLC. AZ. DFS HR ~0.20; OS HR ~0.49 at final analysis. Practice-changing 2020 — redefined adjuvant care for resected EGFR NSCLC.'],
+      ['FLAURA2 (1L EGFR NSCLC)', 'Osimertinib + platinum/pemetrexed vs osimertinib alone in 1L EGFR-mutant advanced NSCLC. AZ. PFS ~25.5 vs ~16.7 mo; more toxicity. Option for higher-risk EGFR patients (brain mets, L858R).'],
+      ['LAURA (stage III EGFR NSCLC)', 'Osimertinib vs placebo after definitive chemoradiation for unresectable stage III EGFR-mutant NSCLC. AZ. PFS ~39 vs ~5.6 mo — dramatic. 2024 readout filled a major gap in stage III EGFR management.'],
+      ['MARIPOSA (1L EGFR NSCLC)', 'Amivantamab (EGFR × MET bispecific) + lazertinib vs osimertinib in 1L EGFR-mutant NSCLC. J&J. PFS ~23.7 vs ~16.6 mo but higher infusion reactions, VTE, rash. Alternative 1L for select patients.'],
+      ['CROWN (1L ALK NSCLC)', 'Lorlatinib vs crizotinib in 1L ALK+ advanced NSCLC. Pfizer. 5-year PFS ~60% vs ~8% — best PFS reported in advanced NSCLC. Standard 1L for ALK+ NSCLC despite CNS/mood/lipid tox monitoring.'],
+      ['ALINA (early ALK NSCLC)', 'Adjuvant alectinib × 2 years vs platinum chemo in resected stage IB (≥4 cm)-IIIA ALK+ NSCLC. Roche. DFS HR ~0.24. Approved 2024 — first adjuvant TKI for ALK+ NSCLC.'],
+      ['DESTINY-Breast04 (HER2-low mBC)', 'Trastuzumab deruxtecan (T-DXd) vs physician\'s choice chemo in HER2-low (IHC 1+ or 2+/ISH-) pretreated metastatic breast cancer. AZ/Daiichi. Created a new "HER2-low" treatment class. 2022.'],
+      ['DESTINY-Breast06 (HER2-low + ultralow)', 'T-DXd vs chemo in HR+ HER2-low OR HER2-ultralow (IHC 0 with membrane staining) mBC after progression on endocrine therapy. AZ/Daiichi. Extended T-DXd to earlier lines and even lower HER2 expression. 2024.'],
+      ['monarchE (early HR+ high-risk BC)', 'Adjuvant abemaciclib × 2 years + endocrine therapy vs endocrine alone in HR+/HER2- node-positive high-risk early breast cancer. Lilly. Persistent iDFS benefit. First adjuvant CDK4/6i approval (2021).'],
+      ['NATALEE (early HR+ BC)', 'Adjuvant ribociclib × 3 years + endocrine therapy vs endocrine alone in HR+/HER2- stage II-III early BC — broader population than monarchE. Novartis. iDFS HR ~0.75. Approved 2024.'],
+      ['EMERALD (ER+ ESR1-mut mBC)', 'Elacestrant (oral SERD) vs SOC endocrine (fulvestrant or AI) in ER+/HER2- pretreated mBC. Menarini/Stemline. PFS advantage concentrated in ESR1-mutant subgroup. First oral SERD approval (2023).'],
+      ['CAPItello-291 (HR+ mBC with pathway alterations)', 'Capivasertib (AKT inhibitor) + fulvestrant vs placebo + fulvestrant in HR+/HER2- mBC after AI progression. AZ. PFS ~7.3 vs ~3.1 mo in AKT/PIK3CA/PTEN-altered subgroup. Approved 2023 with biomarker restriction.'],
+      ['CodeBreaK 200 (2L KRAS G12C NSCLC)', 'Sotorasib vs docetaxel in previously treated KRAS G12C-mutant NSCLC. Amgen. Modest PFS benefit, no OS benefit — controversial confirmatory trial that led FDA to require additional dose-comparison work.'],
+      ['CodeBreaK 300 (KRAS G12C mCRC)', 'Sotorasib + panitumumab vs sotorasib alone or investigator\'s choice in KRAS G12C chemo-refractory mCRC. Amgen. ORR ~26% combo vs ~6% mono. Combination is the effective regimen in CRC (unlike NSCLC).'],
+      ['LIBRETTO-431 (1L RET+ NSCLC)', 'Selpercatinib vs platinum-based chemo ± pembrolizumab in 1L RET fusion-positive advanced NSCLC. Lilly. PFS ~24.8 vs ~11.2 mo. Cemented selpercatinib as 1L standard for RET+ NSCLC.'],
+      ['NAPOLI-3 (1L metastatic pancreatic)', 'NALIRIFOX (liposomal irinotecan + oxaliplatin + 5-FU/LV) vs gemcitabine + nab-paclitaxel in 1L metastatic pancreatic adenocarcinoma. Ipsen. Modest OS gain (~11.1 vs ~9.2 mo). New 1L option alongside FOLFIRINOX.'],
+      ['ARASENS (mHSPC)', 'Darolutamide + docetaxel + ADT vs docetaxel + ADT in metastatic hormone-sensitive prostate cancer. Bayer. OS benefit. Triplet is now a preferred option for high-volume mHSPC.'],
+      ['PROpel (1L mCRPC)', 'Olaparib + abiraterone vs placebo + abiraterone in 1L metastatic castration-resistant prostate cancer, all-comers. AZ/Merck. rPFS benefit; FDA restricted approval to BRCA1/2-mutated subset (2023) — trial/label disconnect.'],
+      ['TALAPRO-2 (1L mCRPC)', 'Talazoparib + enzalutamide vs placebo + enzalutamide in 1L mCRPC. Pfizer. rPFS benefit, larger in HRR-mutated. FDA also restricted approval to HRR-mutated — same pattern as PROpel.'],
+      ['INDIGO (IDH-mut low-grade glioma)', 'Vorasidenib (dual IDH1/2 inhibitor) vs placebo in residual/recurrent grade 2 IDH1/2-mutant glioma after resection. Servier. PFS ~27.7 vs ~11.1 mo. First targeted therapy for this subtype. Approved 2024.'],
+      ['CheckMate 816 (resectable NSCLC)', 'Neoadjuvant nivolumab + chemo (3 cycles) vs chemo alone in resectable stage IB-IIIA NSCLC. BMS. pCR ~24% vs ~2%; improved EFS. Approved 2022 — established neoadjuvant IO for resectable NSCLC.'],
+      ['KEYNOTE-671 (perioperative NSCLC)', 'Neoadjuvant pembrolizumab + chemo → surgery → adjuvant pembrolizumab vs neoadjuvant chemo alone → surgery → placebo, in resectable stage II-IIIB NSCLC. Merck. EFS and OS benefit. Extended IO to the full perioperative window.'],
+      ['ADRIATIC (limited-stage SCLC)', 'Consolidation durvalumab (± tremelimumab) vs placebo after concurrent chemoradiation in limited-stage SCLC. AZ. Median OS ~55.9 vs ~33.4 mo. Practice-changing 2024 — first IO benefit in LS-SCLC.'],
+      ['POLARIX (1L DLBCL)', 'Polatuzumab vedotin (anti-CD79b ADC) + R-CHP vs R-CHOP in 1L DLBCL. Roche. PFS HR ~0.73; OS neutral. Selective new standard for IPI 2+ high-risk DLBCL (subgroup benefit largely in ABC subtype).'],
+      ['ZUMA-7 (2L LBCL)', 'Axicabtagene ciloleucel (axi-cel) vs standard salvage chemo + auto-SCT in 2L R/R large B-cell lymphoma refractory or relapsing within 12 months. Kite/Gilead. EFS and OS benefit. Moved CAR-T from 3L to 2L in eligible patients.'],
+      ['CARTITUDE-4 (R/R myeloma)', 'Ciltacabtagene autoleucel (cilta-cel) vs pomalidomide-based SOC in R/R multiple myeloma after 1-3 prior lines, lenalidomide-refractory. J&J/Legend. PFS HR ~0.26 — dramatic. 2024 expansion of CAR-T to earlier myeloma lines.'],
+      ['MajesTEC-1 (R/R myeloma)', 'Teclistamab (BCMA × CD3 bispecific T-cell engager) in triple-class-exposed R/R multiple myeloma. J&J. ORR ~63% in a heavily pretreated population. Approved 2022 — first BCMA BiTE.'],
+      ['SPOTLIGHT / GLOW (1L gastric)', 'Zolbetuximab (anti-CLDN18.2 mAb) + chemo vs chemo alone in 1L HER2-negative, CLDN18.2+ (≥75% of tumor cells staining) advanced gastric/GEJ adenocarcinoma. Astellas. OS benefit. Approved 2024 — new biomarker-defined gastric subset.'],
+      ['IMbrave150 (1L unresectable HCC)', 'Atezolizumab + bevacizumab vs sorafenib in 1L unresectable HCC. Roche. Median OS ~19.2 vs ~13.4 mo. 2020 practice change — first ICI-based combo standard in HCC.'],
+      ['CheckMate 9DW (1L unresectable HCC)', 'Nivolumab + ipilimumab vs investigator\'s choice (lenvatinib or sorafenib) in 1L unresectable HCC. BMS. OS benefit. Approved 2024 as second ICI-based option in 1L HCC (avoids anti-VEGF bleeding risk).'],
+      ['CheckMate 649 (1L gastric)', 'Nivolumab + chemo vs chemo alone in 1L HER2-negative advanced gastric/GEJ/esophageal adenocarcinoma. BMS. OS benefit concentrated in PD-L1 CPS ≥5; FDA label ultimately narrowed accordingly (2024 update).'],
+      ['LITESPARK-005 (2L+ ccRCC)', 'Belzutifan (HIF-2α inhibitor) vs everolimus in previously treated advanced clear cell RCC. Merck. PFS benefit, ORR advantage, OS non-significant. Also approved for VHL-associated tumors.'],
+      ['Dostarlimab in dMMR rectal (Cercek/MSK)', 'Neoadjuvant single-agent dostarlimab (anti-PD-1) in locally advanced dMMR/MSI-H rectal adenocarcinoma. GSK. 100% clinical complete response in initial pilot, replicated as cohort expanded. Enables non-operative management in this curable subset — organ-preserving approach.'],
+      ['ADAURA-2 / other adjuvant / MRD ctDNA notes', 'A recurring theme in 2020s trials: minimal residual disease (MRD) detected by ctDNA is being used to select patients for adjuvant therapy escalation (e.g. DYNAMIC in stage II colon, IMvigor011 in urothelial). Watch this space — biomarker-guided adjuvant IO is the next frontier.'],
     ],
   },
 ];
