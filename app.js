@@ -16,6 +16,10 @@ function newCard(front, back) {
 }
 
 function normalizeCard(c) {
+  // Accept either { front, back, ... } objects or ['front', 'back'] array shorthand (used by seed data).
+  if (Array.isArray(c)) {
+    return { id: uid('card'), front: String(c[0] ?? ''), back: String(c[1] ?? ''), weight: 1, stats: { right: 0, wrong: 0 } };
+  }
   return {
     id: c.id || uid('card'),
     front: c.front || '',
