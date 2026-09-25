@@ -285,19 +285,28 @@ function pickNext(cards) {
 
 let studySession = null;
 
+function newStudySession(catId, opts = {}) {
+  return {
+    categoryId: catId,
+    seen: 0, right: 0, wrong: 0,
+    current: null, showBack: false,
+    reverse: opts.reverse || false,
+    target: typeof opts.target === 'number' ? opts.target : 0,
+    done: false,
+  };
+}
+
 function renderStudy(categoryId) {
   const cat = state.categories.find(c => c.id === categoryId);
   if (!cat || cat.cards.length === 0) { navigate({ name: 'home' }); return el('div'); }
 
   if (!studySession || studySession.categoryId !== cat.id) {
-    studySession = { categoryId: cat.id, seen: 0, right: 0, wrong: 0, current: null, showBack: false };
+    studySession = newStudySession(cat.id);
   }
-  if (!studySession.current) {
+  if (!studySession.current && !studySession.done) {
     studySession.current = pickNext(cat.cards);
     studySession.showBack = false;
   }
-
-  const card = studySession.current;
 
   const wrap = el('div');
   wrap.appendChild(el('div', { class: 'header' }, [
@@ -306,11 +315,54 @@ function renderStudy(categoryId) {
     el('div', { style: { width: '60px' } }),
   ]));
 
+  // options: reverse toggle + session target
+  const targetSelect = el('select', {
+    onInput: (e) => { studySession.target = parseInt(e.target.value, 10); render(); },
+  }, [
+    el('option', { value: '0' }, '∞'),
+    el('option', { value: '10' }, '10'),
+    el('option', { value: '20' }, '20'),
+    el('option', { value: '50' }, '50'),
+    el('option', { value: '100' }, '100'),
+  ]);
+  targetSelect.value = String(studySession.target);
+
+  wrap.appendChild(el('div', { class: 'options-row' }, [
+    el('button', {
+      class: 'chip',
+      title: 'Swap which side shows first',
+      onClick: () => { studySession.reverse = !studySession.reverse; studySession.showBack = false; render(); },
+    }, studySession.reverse ? '⇄ Back → Front' : '⇄ Front → Back'),
+    el('label', { class: 'chip' }, [
+      el('span', { style: { color: 'var(--muted)' } }, 'Target'),
+      targetSelect,
+    ]),
+  ]));
+
+  if (studySession.done) {
+    const accuracy = studySession.seen > 0 ? Math.round(100 * studySession.right / studySession.seen) : 0;
+    wrap.appendChild(el('div', { class: 'study-wrap' }, [
+      el('div', { class: 'study-card' }, `Session complete\n${studySession.seen} cards · ${accuracy}% correct`),
+    ]));
+    wrap.appendChild(el('div', { class: 'study-actions' }, [
+      el('button', { onClick: () => { studySession = null; navigate({ name: 'category', categoryId: cat.id }); } }, 'Back to category'),
+      el('button', { class: 'primary', onClick: () => {
+        studySession = newStudySession(cat.id, { reverse: studySession.reverse, target: studySession.target });
+        render();
+      } }, 'Start another'),
+    ]));
+    return wrap;
+  }
+
+  const card = studySession.current;
+  const promptText = studySession.reverse ? card.back : card.front;
+  const answerText = studySession.reverse ? card.front : card.back;
+
   const studyWrap = el('div', { class: 'study-wrap' });
   const cardEl = el('div', {
     class: 'study-card' + (studySession.showBack ? ' back' : ''),
     onClick: () => { studySession.showBack = !studySession.showBack; render(); },
-  }, studySession.showBack ? card.back : card.front);
+  }, studySession.showBack ? answerText : promptText);
   studyWrap.appendChild(cardEl);
   studyWrap.appendChild(el('div', { class: 'hint' }, studySession.showBack ? 'Tap card to hide answer' : 'Tap card to reveal answer'));
   wrap.appendChild(studyWrap);
@@ -328,8 +380,9 @@ function renderStudy(categoryId) {
     }, 'Right'),
   ]));
 
+  const targetSuffix = studySession.target > 0 ? ` / ${studySession.target}` : '';
   wrap.appendChild(el('div', { class: 'study-stats' }, [
-    el('span', {}, `Seen: ${studySession.seen}`),
+    el('span', {}, `Seen: ${studySession.seen}${targetSuffix}`),
     el('span', {}, `✓ ${studySession.right}   ✗ ${studySession.wrong}`),
     el('span', {}, `weight ${card.weight.toFixed(2)}`),
   ]));
@@ -348,9 +401,14 @@ function grade(cat, card, isRight) {
     studySession.wrong += 1;
   }
   studySession.seen += 1;
-  studySession.current = pickNext(cat.cards);
-  studySession.showBack = false;
   saveState();
+  if (studySession.target > 0 && studySession.seen >= studySession.target) {
+    studySession.done = true;
+    studySession.current = null;
+  } else {
+    studySession.current = pickNext(cat.cards);
+    studySession.showBack = false;
+  }
   render();
 }
 
