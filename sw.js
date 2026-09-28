@@ -1,5 +1,5 @@
 // Bump this string whenever you deploy new assets.
-const CACHE = 'flashcards-v7';
+const CACHE = 'flashcards-v8';
 const ASSETS = [
   './',
   './index.html',

@@ -37,46 +37,118 @@ function normalizeCategory(cat) {
   };
 }
 
+// Fixed roster. Adding a user later is a code change — that's the whole point
+// of "no auth" mode: no signup, no drift between devices.
+const DEFAULT_USER_ROSTER = [
+  { id: 'user_meredith', name: 'Meredith' },
+  { id: 'user_marie', name: 'Marie' },
+  { id: 'user_james', name: 'James' },
+  { id: 'user_jonathan', name: 'Jonathan' },
+];
+
+function normalizeUser(u) {
+  return {
+    id: u.id || uid('user'),
+    name: u.name || 'Unnamed',
+    seedRevision: typeof u.seedRevision === 'number' ? u.seedRevision : 0,
+    categories: (u.categories || []).map(normalizeCategory),
+  };
+}
+
+function applySeedMigration(user, currentRev) {
+  // Add any seed categories introduced after this user's last seed revision.
+  // Skips names the user already has (so custom edits and deletions of
+  // pre-existing seed categories are preserved).
+  if (typeof SEED_CATEGORIES === 'undefined' || user.seedRevision >= currentRev) return 0;
+  const existing = new Set(user.categories.map(c => c.name));
+  let added = 0;
+  for (const seed of SEED_CATEGORIES) {
+    const seedSince = typeof seed.since === 'number' ? seed.since : 0;
+    if (seedSince > user.seedRevision && !existing.has(seed.name)) {
+      user.categories.push(normalizeCategory(seed));
+      added += 1;
+    }
+  }
+  user.seedRevision = currentRev;
+  return added;
+}
+
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
   const currentRev = typeof CURRENT_SEED_REVISION === 'number' ? CURRENT_SEED_REVISION : 0;
+  let base = null;
+
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
-      const base = {
-        version: 1,
-        updatedAt: parsed.updatedAt || Date.now(),
-        seedRevision: typeof parsed.seedRevision === 'number' ? parsed.seedRevision : 0,
-        categories: (parsed.categories || []).map(normalizeCategory),
-      };
-      // Add any seed categories introduced after the user's last seed revision.
-      // Skips names the user already has (so custom edits and deletions of
-      // pre-existing seed categories are preserved).
-      if (typeof SEED_CATEGORIES !== 'undefined' && base.seedRevision < currentRev) {
-        const existing = new Set(base.categories.map(c => c.name));
-        let added = 0;
-        for (const seed of SEED_CATEGORIES) {
-          const seedSince = typeof seed.since === 'number' ? seed.since : 0;
-          if (seedSince > base.seedRevision && !existing.has(seed.name)) {
-            base.categories.push(normalizeCategory(seed));
-            added += 1;
-          }
-        }
-        base.seedRevision = currentRev;
-        if (added > 0) {
-          base.updatedAt = Date.now();
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(base));
-        }
+      if (parsed && parsed.version === 2 && Array.isArray(parsed.users)) {
+        // v2 state — already user-scoped.
+        base = {
+          version: 2,
+          updatedAt: parsed.updatedAt || Date.now(),
+          currentUserId: parsed.currentUserId || (parsed.users[0] && parsed.users[0].id) || 'user_jonathan',
+          users: parsed.users.map(normalizeUser),
+        };
+      } else if (parsed && Array.isArray(parsed.categories)) {
+        // v1 state — everything the previous single-profile app had becomes Jonathan.
+        const jonathanRev = typeof parsed.seedRevision === 'number' ? parsed.seedRevision : 0;
+        base = {
+          version: 2,
+          updatedAt: parsed.updatedAt || Date.now(),
+          currentUserId: 'user_jonathan',
+          users: [
+            { id: 'user_meredith', name: 'Meredith', seedRevision: currentRev, categories: [] },
+            { id: 'user_marie',    name: 'Marie',    seedRevision: currentRev, categories: [] },
+            { id: 'user_james',    name: 'James',    seedRevision: currentRev, categories: [] },
+            { id: 'user_jonathan', name: 'Jonathan', seedRevision: jonathanRev, categories: (parsed.categories || []).map(normalizeCategory) },
+          ],
+        };
       }
-      return base;
     } catch (e) { console.warn('Corrupt state, reseeding', e); }
   }
-  return {
-    version: 1,
-    updatedAt: Date.now(),
-    seedRevision: currentRev,
-    categories: (typeof SEED_CATEGORIES !== 'undefined' ? SEED_CATEGORIES : []).map(normalizeCategory),
-  };
+
+  if (!base) {
+    // Fresh install: Jonathan gets the seeds, everyone else empty.
+    base = {
+      version: 2,
+      updatedAt: Date.now(),
+      currentUserId: 'user_jonathan',
+      users: [
+        { id: 'user_meredith', name: 'Meredith', seedRevision: currentRev, categories: [] },
+        { id: 'user_marie',    name: 'Marie',    seedRevision: currentRev, categories: [] },
+        { id: 'user_james',    name: 'James',    seedRevision: currentRev, categories: [] },
+        { id: 'user_jonathan', name: 'Jonathan', seedRevision: currentRev,
+          categories: (typeof SEED_CATEGORIES !== 'undefined' ? SEED_CATEGORIES : []).map(normalizeCategory) },
+      ],
+    };
+  }
+
+  // Ensure the default roster is present even if state was corrupted/edited.
+  const existingIds = new Set(base.users.map(u => u.id));
+  for (const defaultUser of DEFAULT_USER_ROSTER) {
+    if (!existingIds.has(defaultUser.id)) {
+      base.users.push({ ...defaultUser, seedRevision: currentRev, categories: [] });
+    }
+  }
+  if (!base.users.some(u => u.id === base.currentUserId)) {
+    base.currentUserId = base.users[0].id;
+  }
+
+  // Per-user seed migration for any new seed revisions.
+  let migrationChanged = false;
+  for (const user of base.users) {
+    if (applySeedMigration(user, currentRev) > 0) migrationChanged = true;
+  }
+  if (migrationChanged) {
+    base.updatedAt = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(base));
+  }
+
+  return base;
+}
+
+function currentUser() {
+  return state.users.find(u => u.id === state.currentUserId) || state.users[0];
 }
 
 function saveState() {
@@ -141,21 +213,44 @@ function render() {
   root.appendChild(node);
 }
 
+// ---------- user switcher ----------
+function renderUserSwitcher() {
+  const bar = el('div', { class: 'user-switcher', role: 'tablist' });
+  for (const u of state.users) {
+    const active = u.id === state.currentUserId;
+    bar.appendChild(el('button', {
+      class: active ? 'active' : '',
+      role: 'tab',
+      'aria-selected': active ? 'true' : 'false',
+      onClick: () => {
+        if (state.currentUserId === u.id) return;
+        state.currentUserId = u.id;
+        studySession = null;
+        saveState();
+        navigate({ name: 'home' });
+      },
+    }, u.name));
+  }
+  return bar;
+}
+
 // ---------- home ----------
 function renderHome() {
+  const me = currentUser();
   const wrap = el('div');
+  wrap.appendChild(renderUserSwitcher());
   wrap.appendChild(el('div', { class: 'header' }, [
-    el('h1', {}, 'Flashcards'),
+    el('h1', {}, me.name),
     el('div', { class: 'actions' }, [
       el('button', { class: 'ghost', title: 'Settings', onClick: () => navigate({ name: 'settings' }) }, 'Settings'),
     ]),
   ]));
 
-  if (state.categories.length === 0) {
-    wrap.appendChild(el('div', { class: 'empty' }, 'No categories yet. Add one below.'));
+  if (me.categories.length === 0) {
+    wrap.appendChild(el('div', { class: 'empty' }, 'No categories yet. Add one below — or hit Settings → Reset to load the built-in starter set.'));
   } else {
     const list = el('div', { class: 'list' });
-    for (const cat of state.categories) {
+    for (const cat of me.categories) {
       const totalCards = cat.cards.length;
       const dueLabel = totalCards === 0 ? 'No cards yet' : `${totalCards} card${totalCards === 1 ? '' : 's'}`;
       const row = el('div', { class: 'card-row clickable', onClick: () => navigate({ name: 'category', categoryId: cat.id }) }, [
@@ -178,7 +273,7 @@ function renderHome() {
     const input = form.querySelector('input');
     const name = input.value.trim();
     if (!name) return;
-    state.categories.push({ id: uid('cat'), name, cards: [] });
+    currentUser().categories.push({ id: uid('cat'), name, cards: [] });
     saveState();
     input.value = '';
     render();
@@ -194,7 +289,8 @@ function renderHome() {
 
 // ---------- category detail ----------
 function renderCategory(categoryId) {
-  const cat = state.categories.find(c => c.id === categoryId);
+  const me = currentUser();
+  const cat = me.categories.find(c => c.id === categoryId);
   if (!cat) { navigate({ name: 'home' }); return el('div'); }
 
   const wrap = el('div');
@@ -213,7 +309,7 @@ function renderCategory(categoryId) {
     el('span', { style: { marginLeft: 'auto' } }, [
       el('button', { class: 'danger', onClick: () => {
         if (confirm(`Delete category "${cat.name}" and its ${cat.cards.length} cards?`)) {
-          state.categories = state.categories.filter(c => c.id !== cat.id);
+          me.categories = me.categories.filter(c => c.id !== cat.id);
           saveState();
           navigate({ name: 'home' });
         }
@@ -320,7 +416,7 @@ function newStudySession(catId, opts = {}) {
 }
 
 function renderStudy(categoryId) {
-  const cat = state.categories.find(c => c.id === categoryId);
+  const cat = currentUser().categories.find(c => c.id === categoryId);
   if (!cat || cat.cards.length === 0) { navigate({ name: 'home' }); return el('div'); }
 
   if (!studySession || studySession.categoryId !== cat.id) {
@@ -517,16 +613,25 @@ function renderSettings() {
   // reset
   const resetSection = el('div', { class: 'settings-section' });
   resetSection.appendChild(el('h3', {}, 'Danger zone'));
-  resetSection.appendChild(el('p', {}, 'Wipe all local data and reload seed categories.'));
+  resetSection.appendChild(el('p', {}, `"Load starter set" replaces ${currentUser().name}'s cards with the built-in seed categories. "Wipe all data" removes every user's cards and starts over.`));
   resetSection.appendChild(el('div', { class: 'actions' }, [
     el('button', { class: 'danger', onClick: () => {
-      if (confirm('Wipe ALL local data and restore the built-in seed categories?')) {
+      const me = currentUser();
+      if (confirm(`Replace ${me.name}'s cards with the built-in seed categories?`)) {
+        me.categories = (typeof SEED_CATEGORIES !== 'undefined' ? SEED_CATEGORIES : []).map(normalizeCategory);
+        me.seedRevision = typeof CURRENT_SEED_REVISION === 'number' ? CURRENT_SEED_REVISION : 0;
+        saveState();
+        navigate({ name: 'home' });
+      }
+    } }, `Load starter set for ${currentUser().name}`),
+    el('button', { class: 'danger', onClick: () => {
+      if (confirm('Wipe ALL local data for every user and start over?')) {
         localStorage.removeItem(STORAGE_KEY);
         state = loadState();
         saveState();
         navigate({ name: 'home' });
       }
-    } }, 'Reset to seed data'),
+    } }, 'Wipe all data'),
   ]));
   wrap.appendChild(resetSection);
 
@@ -553,13 +658,41 @@ function importData() {
     try {
       const text = await file.text();
       const parsed = JSON.parse(text);
-      if (!Array.isArray(parsed.categories)) throw new Error('Missing categories');
-      if (!confirm(`Replace all local data with ${parsed.categories.length} categories from file?`)) return;
-      state = {
-        version: 1,
-        updatedAt: parsed.updatedAt || Date.now(),
-        categories: parsed.categories.map(normalizeCategory),
-      };
+      const currentRev = typeof CURRENT_SEED_REVISION === 'number' ? CURRENT_SEED_REVISION : 0;
+      let incoming;
+      if (parsed && parsed.version === 2 && Array.isArray(parsed.users)) {
+        // v2 export — replace whole roster.
+        const userCount = parsed.users.length;
+        const total = parsed.users.reduce((n, u) => n + (u.categories || []).length, 0);
+        if (!confirm(`Replace all local data with ${userCount} users / ${total} categories from file?`)) return;
+        incoming = {
+          version: 2,
+          updatedAt: parsed.updatedAt || Date.now(),
+          currentUserId: parsed.currentUserId || (parsed.users[0] && parsed.users[0].id) || 'user_jonathan',
+          users: parsed.users.map(normalizeUser),
+        };
+      } else if (Array.isArray(parsed.categories)) {
+        // v1 export — assign to CURRENT user only, leave the others alone.
+        const me = currentUser();
+        if (!confirm(`Replace ${me.name}'s ${me.categories.length} categories with ${parsed.categories.length} categories from file?`)) return;
+        me.categories = parsed.categories.map(normalizeCategory);
+        me.seedRevision = typeof parsed.seedRevision === 'number' ? parsed.seedRevision : currentRev;
+        saveState();
+        toast('Imported into ' + me.name);
+        render();
+        return;
+      } else {
+        throw new Error('Not a recognized flashcards export');
+      }
+      state = incoming;
+      // Ensure default roster + valid currentUserId.
+      const existingIds = new Set(state.users.map(u => u.id));
+      for (const defaultUser of DEFAULT_USER_ROSTER) {
+        if (!existingIds.has(defaultUser.id)) {
+          state.users.push({ ...defaultUser, seedRevision: currentRev, categories: [] });
+        }
+      }
+      if (!state.users.some(u => u.id === state.currentUserId)) state.currentUserId = state.users[0].id;
       saveState();
       toast('Imported');
       render();
@@ -616,10 +749,32 @@ async function pullSync() {
   const parsed = JSON.parse(file.content);
   sync.lastSyncedAt = Date.now();
   saveSync();
+  const currentRev = typeof CURRENT_SEED_REVISION === 'number' ? CURRENT_SEED_REVISION : 0;
+  if (parsed && parsed.version === 2 && Array.isArray(parsed.users)) {
+    const users = parsed.users.map(normalizeUser);
+    const existingIds = new Set(users.map(u => u.id));
+    for (const defaultUser of DEFAULT_USER_ROSTER) {
+      if (!existingIds.has(defaultUser.id)) {
+        users.push({ ...defaultUser, seedRevision: currentRev, categories: [] });
+      }
+    }
+    const currentUserId = parsed.currentUserId && users.some(u => u.id === parsed.currentUserId)
+      ? parsed.currentUserId : users[0].id;
+    return { version: 2, updatedAt: parsed.updatedAt || Date.now(), currentUserId, users };
+  }
+  // Legacy v1 remote blob — fold its categories into Jonathan and leave others empty.
   return {
-    version: 1,
+    version: 2,
     updatedAt: parsed.updatedAt || Date.now(),
-    categories: (parsed.categories || []).map(normalizeCategory),
+    currentUserId: 'user_jonathan',
+    users: [
+      { id: 'user_meredith', name: 'Meredith', seedRevision: currentRev, categories: [] },
+      { id: 'user_marie',    name: 'Marie',    seedRevision: currentRev, categories: [] },
+      { id: 'user_james',    name: 'James',    seedRevision: currentRev, categories: [] },
+      { id: 'user_jonathan', name: 'Jonathan',
+        seedRevision: typeof parsed.seedRevision === 'number' ? parsed.seedRevision : 0,
+        categories: (parsed.categories || []).map(normalizeCategory) },
+    ],
   };
 }
 

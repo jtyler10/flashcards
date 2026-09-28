@@ -76,6 +76,33 @@ input, textarea {
 textarea { resize: vertical; min-height: 60px; }
 input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
+.user-switcher {
+  display: flex;
+  gap: 4px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 4px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+}
+.user-switcher button {
+  background: transparent;
+  color: var(--muted);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.user-switcher button.active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
 .header {
   display: flex;
   align-items: center;
