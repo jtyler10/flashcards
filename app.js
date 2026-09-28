@@ -58,16 +58,19 @@ function normalizeUser(u) {
 function applySeedMigration(user, currentRev) {
   // Add any seed categories introduced after this user's last seed revision.
   // Skips names the user already has (so custom edits and deletions of
-  // pre-existing seed categories are preserved).
+  // pre-existing seed categories are preserved). If the seed has a `for`
+  // field, only apply it to the matching user id (rest of the roster
+  // still bumps its seedRevision so future shared seeds behave normally).
   if (typeof SEED_CATEGORIES === 'undefined' || user.seedRevision >= currentRev) return 0;
   const existing = new Set(user.categories.map(c => c.name));
   let added = 0;
   for (const seed of SEED_CATEGORIES) {
     const seedSince = typeof seed.since === 'number' ? seed.since : 0;
-    if (seedSince > user.seedRevision && !existing.has(seed.name)) {
-      user.categories.push(normalizeCategory(seed));
-      added += 1;
-    }
+    if (seedSince <= user.seedRevision) continue;
+    if (existing.has(seed.name)) continue;
+    if (seed.for && seed.for !== user.id) continue;
+    user.categories.push(normalizeCategory(seed));
+    added += 1;
   }
   user.seedRevision = currentRev;
   return added;

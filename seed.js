@@ -5,7 +5,10 @@
 // category with `since: <that revision>`. On next load, existing users will
 // have the new categories added (only) — old ones they've customized or
 // deleted are left alone.
-const CURRENT_SEED_REVISION = 2;
+//
+// Optional `for: 'user_<name>'` on a category restricts it to one profile
+// (useful for personal content the other users on this device don't need).
+const CURRENT_SEED_REVISION = 3;
 
 const SEED_CATEGORIES = [
   {
@@ -406,6 +409,95 @@ const SEED_CATEGORIES = [
       ['LITESPARK-005 (2L+ ccRCC)', 'Belzutifan (HIF-2α inhibitor) vs everolimus in previously treated advanced clear cell RCC. Merck. PFS benefit, ORR advantage, OS non-significant. Also approved for VHL-associated tumors.'],
       ['Dostarlimab in dMMR rectal (Cercek/MSK)', 'Neoadjuvant single-agent dostarlimab (anti-PD-1) in locally advanced dMMR/MSI-H rectal adenocarcinoma. GSK. 100% clinical complete response in initial pilot, replicated as cohort expanded. Enables non-operative management in this curable subset — organ-preserving approach.'],
       ['ADAURA-2 / other adjuvant / MRD ctDNA notes', 'A recurring theme in 2020s trials: minimal residual disease (MRD) detected by ctDNA is being used to select patients for adjuvant therapy escalation (e.g. DYNAMIC in stage II colon, IMvigor011 in urothelial). Watch this space — biomarker-guided adjuvant IO is the next frontier.'],
+    ],
+  },
+  {
+    name: 'Latin — Pronouns & interrogatives',
+    since: 3,
+    for: 'user_jonathan',
+    cards: [
+      // Personal pronouns
+      ['ego (I) — full declension', 'Nom: ego · Gen: mei · Dat: mihi · Acc: me · Abl: me  (with cum: mecum)'],
+      ['tu (you sg.) — full declension', 'Nom: tu · Gen: tui · Dat: tibi · Acc: te · Abl: te  (with cum: tecum)'],
+      ['nos (we) — full declension', 'Nom/Acc: nos · Gen: nostri or nostrum · Dat/Abl: nobis  (with cum: nobiscum)'],
+      ['vos (you pl.) — full declension', 'Nom/Acc: vos · Gen: vestri or vestrum · Dat/Abl: vobis  (with cum: vobiscum)'],
+      ['nostri vs nostrum (and vestri vs vestrum)', 'nostri = objective genitive ("about us," "toward us"). nostrum = partitive genitive ("of us," "among us"). Same split for vestri / vestrum.'],
+      ['Dative singular of ego', 'mihi (occasionally mī)'],
+      ['Ablative of tu', 'te  (with cum → tecum)'],
+      ['Genitive plural of nos (partitive)', 'nostrum  (e.g. unus nostrum — one of us)'],
+      // Reflexive
+      ['Reflexive pronoun (himself / herself / itself / themselves) — declension', 'No nominative. · Gen: sui · Dat: sibi · Acc: se (or sese) · Abl: se (or sese, secum)  — same forms singular and plural.'],
+      ['Reflexive vs. non-reflexive 3rd person', 'Reflexive (sui, sibi, se) refers back to the subject of the clause. Non-reflexive uses is/ea/id (eum, eam, eo, etc.) for someone other than the subject.'],
+      // Demonstratives — hic
+      ['hic, haec, hoc — meaning', 'this (near the speaker) — proximal demonstrative. Also used for "the latter."'],
+      ['hic, haec, hoc — nominative singular (M / F / N)', 'hic · haec · hoc'],
+      ['hic, haec, hoc — genitive singular (all genders)', 'huius'],
+      ['hic, haec, hoc — dative singular (all genders)', 'huic'],
+      ['hic, haec, hoc — accusative singular (M / F / N)', 'hunc · hanc · hoc'],
+      ['hic, haec, hoc — ablative singular (M / F / N)', 'hoc · hac · hoc'],
+      ['hic — nominative plural (M / F / N)', 'hi · hae · haec'],
+      ['hic — dative / ablative plural', 'his (all genders)'],
+      // Demonstratives — ille
+      ['ille, illa, illud — meaning', 'that (distant); also "that famous / that well-known" (emphatic). Often "the former" when paired with hic.'],
+      ['ille, illa, illud — nominative singular', 'ille · illa · illud'],
+      ['ille — genitive singular (all genders)', 'illius'],
+      ['ille — dative singular (all genders)', 'illi'],
+      ['ille — accusative singular (M / F / N)', 'illum · illam · illud'],
+      // Demonstratives — iste, is, idem, ipse
+      ['iste, ista, istud — meaning', 'that (of yours) — near the addressee. Pejorative in classical Latin ("that thing of yours"); usually neutral in ecclesiastical Latin.'],
+      ['is, ea, id — meaning', 'he, she, it; that. The weak demonstrative — by far the most common 3rd-person pronoun in Latin.'],
+      ['is, ea, id — nominative singular', 'is · ea · id'],
+      ['is, ea, id — genitive singular (all genders)', 'eius'],
+      ['is, ea, id — dative singular (all genders)', 'ei'],
+      ['is, ea, id — accusative singular', 'eum · eam · id'],
+      ['is, ea, id — ablative singular', 'eo · ea · eo'],
+      ['is, ea, id — nominative plural (M / F / N)', 'ei (or ii) · eae · ea'],
+      ['is, ea, id — dative / ablative plural', 'eis (or iis)'],
+      ['idem, eadem, idem — meaning', 'the same. Formed from is + suffix -dem, with sound change m → n before d (eundem, eandem).'],
+      ['ipse, ipsa, ipsum — meaning', 'self, the very (intensive). "Caesar ipse — Caesar himself"; "eo ipso die — on that very day." Declines like ille with -ius / -i in the singular.'],
+      // Relative pronoun
+      ['qui, quae, quod — meaning', 'who, which, that (relative pronoun). Agrees with its antecedent in gender and number; takes its case from its role in its own clause.'],
+      ['qui — nominative singular (M / F / N)', 'qui · quae · quod'],
+      ['qui — genitive singular (all genders)', 'cuius'],
+      ['qui — dative singular (all genders)', 'cui'],
+      ['qui — accusative singular (M / F / N)', 'quem · quam · quod'],
+      ['qui — ablative singular (M / F / N)', 'quo · qua · quo  (with cum → quocum, quacum)'],
+      ['qui — nominative plural (M / F / N)', 'qui · quae · quae'],
+      ['qui — dative / ablative plural (all genders)', 'quibus'],
+      // Interrogative pronouns and adjectives
+      ['quis? quid? — meaning', 'who? what? (interrogative pronoun, used substantively — asks about identity). "Quis venit? — Who came?"'],
+      ['quis vs qui as interrogative', 'quis, quid (substantive): asks WHO / WHAT — "Quis fecit? — Who did it?" · qui, quae, quod (adjectival): asks WHICH — "Qui homo? — Which man?" Declension is otherwise the same.'],
+      // Interrogative adverbs / adjectives
+      ['quot?', 'how many? (indeclinable adjective: "Quot homines? — How many people?")'],
+      ['qualis, quale?', 'of what kind? what sort? Correlative with talis (of such a kind).'],
+      ['quantus, -a, -um?', 'how great? how much? Correlative with tantus (so great).'],
+      ['ubi?', 'where? (place where — locative sense)'],
+      ['unde?', 'from where? whence?'],
+      ['quo?', 'to where? whither?'],
+      ['qua?', 'by which way? in what direction?'],
+      ['quando?', 'when?'],
+      ['cur?', 'why? (asks for cause or reason)'],
+      ['quare?', 'why? wherefore? (lit. "because of which thing" — qua re)'],
+      ['quomodo?', 'how? in what way?'],
+      ['quotiens?', 'how often? how many times?'],
+      // Question particles
+      ['-ne (enclitic)', 'Attaches to the first (usually emphasized) word of a neutral yes/no question. "Videtne? — Does he see?"'],
+      ['num', 'Introduces a yes/no question expecting the answer "No." "Num videt? — He doesn\'t see, does he?"'],
+      ['nonne', 'Introduces a yes/no question expecting the answer "Yes." "Nonne videt? — He sees, doesn\'t he?"'],
+      ['an', 'or (in disjunctive / alternative questions). "Estne servus an liber? — Is he a slave or free?"'],
+      // Indefinite pronouns
+      ['aliquis, aliquid', 'someone, something (in positive statements). "Aliquis venit — Someone came."'],
+      ['quis, quid (indefinite)', 'anyone, anything — but only after si, nisi, num, ne. Rule: "After si, nisi, num, and ne, all the ali-s fall away." "Si quis venit — If anyone comes."'],
+      ['quisquam, quicquam (quidquam)', 'anyone at all, anything at all — used in negative or quasi-negative contexts. "Nec quisquam venit — Nor did anyone come."'],
+      ['quidam, quaedam, quiddam / quoddam', 'a certain (someone / something known but unspecified). quiddam = noun form, quoddam = adjective form.'],
+      ['quisque, quaeque, quidque / quodque', 'each, every. Often with a superlative: "optimus quisque — every excellent man / the best men."'],
+      ['nemo', 'no one. Gen: nullius · Dat: nemini · Acc: neminem · Abl: nullo. Borrows genitive and ablative from nullus.'],
+      ['nihil (nil)', 'nothing (indeclinable, effectively used only in nom / acc). "Nihil scio — I know nothing."'],
+      ['ullus, -a, -um', 'any (used mainly in negative or conditional clauses). "non ullus — not any = none."'],
+      ['omnis, omne', 'every, all. Third-declension adjective, but functions like a pronoun. "omnes homines — all people."'],
+      ['uter, utra, utrum?', 'which (of two)? "Uter fratrum venit? — Which of the two brothers came?"'],
+      ['alter, altera, alterum', 'the other (of two). Genitive alterius, dative alteri. "unus…alter — the one…the other."'],
+      ['alius, alia, aliud', 'another, other (of more than two). Genitive alterius (borrowed), dative alii. "alii…alii — some…others."'],
     ],
   },
 ];
